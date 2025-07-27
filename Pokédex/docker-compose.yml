@@ -1,0 +1,81 @@
+services:
+  mongo:
+    image: mongo:4.4
+    container_name: mongo
+    volumes: 
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - fiware
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 30s  # Aumentado para MongoDB inicializar
+      retries: 10   # Mais tentativas para MongoDB pesado
+
+  orion:
+    image: fiware/orion-ld:1.6.0
+    container_name: orion
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "1026:1026"
+    command: -dbhost mongo -logLevel DEBUG
+    networks:
+      - fiware
+    environment:
+      - MONGO_SLOW_QUERY_MS=10000  # Aumenta timeout MongoDB
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1026/version"]
+      interval: 30s
+      timeout: 20s   # Aumentado para Orion inicializar
+      retries: 10    # Mais tentativas para Orion pesado
+      start_period: 30s  # Tempo inicial antes de começar checks
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    hostname: mysql
+    restart: always
+    environment:
+      # AGORA SÓ PRECISAMOS DA SENHA DO ROOT
+      - MYSQL_ROOT_PASSWORD=secret-root-password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - fiware
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecret-root-password"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+
+  keyrock:
+    image: fiware/idm:latest
+    container_name: keyrock
+    hostname: keyrock
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: always
+    ports:
+      - "3005:3000"
+    networks:
+      - fiware
+    environment:
+      # MUDAMOS O USUÁRIO E SENHA PARA O ROOT
+      - IDM_DB_USER=root
+      - IDM_DB_PASS=secret-root-password
+      - IDM_DB_HOST=mysql
+      - IDM_DB_NAME=keyrock_db
+      - IDM_HOST=http://localhost:3005
+
+volumes:
+  mongo_data:
+  mysql_data:
+
+networks:
+  fiware:
+    driver: bridge

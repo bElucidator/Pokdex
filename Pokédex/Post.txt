@@ -1,0 +1,29 @@
+// Exemplo de comando POST para adicionar um pokemon no banco de dados (Bulbasaur)
+
+curl -iX POST 'http://localhost:1026/ngsi-ld/v1/entities' \
+-H 'Content-Type: application/ld+json' \
+-d '{
+    "@context": "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
+    "id": "urn:ngsi-ld:Pokemon:001",
+    "type": "Pokemon",
+    "name": {
+        "type": "Property",
+        "value": "Bulbasaur"
+    },
+    "pokedexNumber": {
+        "type": "Property",
+        "value": 1
+    },
+    "types": {
+        "type": "Property",
+        "value": ["Grass", "Poison"]
+    },
+    "hp": {
+        "type": "Property",
+        "value": 45
+    },
+    "attack": {
+        "type": "Property",
+        "value": 49
+    }
+}'

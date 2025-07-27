@@ -1,0 +1,87 @@
+version: '3.8'
+services:
+  mongo:
+    image: mongo:4.4
+    container_name: mongo
+    volumes: 
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - fiware
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 30s  # Aumentado para MongoDB inicializar
+      retries: 10   # Mais tentativas para MongoDB pesado
+
+  orion:
+    image: fiware/orion-ld:1.6.0
+    container_name: orion
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "1026:1026"
+    command: -dbhost mongo -logLevel DEBUG
+    networks:
+      - fiware
+    environment:
+      - MONGO_SLOW_QUERY_MS=10000  # Aumenta timeout MongoDB
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1026/version"]
+      interval: 30s
+      timeout: 20s   # Aumentado para Orion inicializar
+      retries: 10    # Mais tentativas para Orion pesado
+      start_period: 30s  # Tempo inicial antes de começar checks
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    hostname: mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret-root-password  # Senha do superusuário do banco
+      - MYSQL_DATABASE=keyrock_db               # Nome do banco de dados para o Keyrock
+      - MYSQL_USER=keyrock_user                 # Nome do usuário que o Keyrock usará
+      - MYSQL_PASSWORD=secret-keyrock-password  # Senha para este usuário
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - fiware
+      
+    healthcheck:
+      # Este healthcheck verifica se o MySQL está pronto para receber conexões
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecret-root-password"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+
+  keyrock:
+    image: fiware/idm:8.1.0
+    container_name: keyrock
+    hostname: keyrock
+    depends_on:
+      mysql:
+        # Keyrock só vai iniciar DEPOIS que o healthcheck do MySQL passar
+        condition: service_healthy
+    restart: always
+    ports:
+      # Porta para acessar a interface web do Keyrock
+      - "3005:3005"
+    networks:
+      - fiware
+    environment:
+      - IDM_DB_HOST=mysql                       # Aponta para o serviço mysql
+      - IDM_DB_USER=keyrock_user                # Deve ser igual ao MYSQL_USER
+      - IDM_DB_PASS=secret-keyrock-password     # Deve ser igual ao MYSQL_PASSWORD
+      - IDM_DB_NAME=keyrock_db                  # Deve ser igual ao MYSQL_DATABASE
+      - IDM_HOST=http://localhost:3005          # Endereço público do próprio Keyrock
+
+networks:
+  fiware:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  mysql_data:

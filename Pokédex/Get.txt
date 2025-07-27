@@ -1,0 +1,8 @@
+// Exemplo de comando GET para consultar um pokemon no banco de dados (Bulbasaur)
+
+curl 'http://localhost:1026/ngsi-ld/v1/entities/urn:ngsi-ld:Pokemon:001' \
+-H 'Accept: application/ld+json'
+
+
+// De forma mais legível :
+curl 'http://localhost:1026/ngsi-ld/v1/entities/urn:ngsi-ld:Pokemon:001' | jq
