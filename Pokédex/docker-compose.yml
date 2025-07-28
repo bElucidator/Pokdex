@@ -20,8 +20,7 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
-    ports:
-      - "1026:1026"
+
     command: -dbhost mongo -logLevel DEBUG
     networks:
       - fiware
@@ -72,10 +71,32 @@ services:
       - IDM_DB_NAME=keyrock_db
       - IDM_HOST=http://localhost:3005
 
+  pep-proxy:
+    image: fiware/pep-proxy:7.9.0
+    container_name: pep-proxy
+    hostname: pep-proxy
+    depends_on:
+      orion:
+        condition: service_started
+      keyrock:
+        # AGORA O PEP ESPERA O KEYROCK FICAR SAUDÁVEL
+        condition: service_healthy
+    restart: always
+    ports:
+      # O Wilma agora expõe a porta 1026 para o mundo
+      - "1026:80"
+    networks:
+      - fiware
+    environment:
+      - PEP_PROXY_APP_HOST=orion          # Para onde o Wilma deve encaminhar o tráfego (o nosso Orion)
+      - PEP_PROXY_APP_PORT=1026           # A porta do serviço de destino
+      - PEP_PROXY_IDM_HOST=keyrock        # Onde está o Keyrock para verificar as permissões
+      - PEP_PROXY_IDM_PORT=3000           # A porta INTERNA do Keyrock
+      - PEP_PROXY_AUTH_ENABLED=true       # Ativa a autenticação
+      - PEP_PROXY_HTTPS_ENABLED=false     # Não usaremos HTTPS
+      - PEP_PROXY_TENANCY_ENABLED=false   # Não usaremos multitenancy por agora
+
+
 volumes:
   mongo_data:
   mysql_data:
-
-networks:
-  fiware:
-    driver: bridge
