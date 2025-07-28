@@ -1,0 +1,6 @@
+// Professor
+
+curl -iX POST 'http://localhost:3005/oauth2/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -u '072d7aa1-6026-47e9-b91d-e05cf946de6e:06508c4c-d577-41f5-9914-b9fce84d2bc8' \
+  -d 'username=Professor_Carvalho&password=carvalho&grant_type=password'
