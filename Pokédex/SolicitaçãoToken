@@ -4,3 +4,20 @@ curl -iX POST 'http://localhost:3005/oauth2/token' \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   -u '072d7aa1-6026-47e9-b91d-e05cf946de6e:06508c4c-d577-41f5-9914-b9fce84d2bc8' \
   -d 'username=Professor_Carvalho&password=carvalho&grant_type=password'
+
+
+
+  curl -iX POST 'http://localhost:3005/oauth2/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -u 'b73c3d23-4905-4ec8-99d6-fa69c26f8db2:d32c92ab-6b2c-4682-b3ee-765fa4631620' \
+  -d 'username=test&password=1234&grant_type=password'
+
+  curl -iX POST 'http://localhost:3005/oauth2/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -u 'b73c3d23-4905-4ec8-99d6-fa69c26f8db2:d32c92ab-6b2c-4682-b3ee-765fa4631620' \
+  -d 'grant_type=client_credentials'
+
+
+
+  curl -X GET 'http://localhost:1026/ngsi-ld/v1/entities' \
+  -H 'X-Auth-Token: 70255d6d6079994cd05c2500aaab21f5dea422d0' 
