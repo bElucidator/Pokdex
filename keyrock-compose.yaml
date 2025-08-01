@@ -1,0 +1,63 @@
+# ~/Desktop/Pokedex/compose-files/keyrock-compose.yaml
+
+services:
+  keyrock:
+    image: fiware/idm:${KEYROCK_VERSION}
+    env_file:
+      - ../.env
+    container_name: keyrock
+    hostname: keyrock
+    depends_on:
+      mysql-db:
+        # CONDIÇÃO ESSENCIAL para esperar que o MySQL esteja pronto
+        condition: service_healthy
+    ports:
+      - "${KEYROCK_PORT}:${KEYROCK_PORT}"
+    expose:
+      - "${KEYROCK_PORT}"
+    environment:
+      - DEBUG=idm:*
+      - IDM_DB_HOST=mysql-db
+      - IDM_HOST=http://localhost:${KEYROCK_PORT}
+      - IDM_PORT=${KEYROCK_PORT}
+      - IDM_HTTPS_ENABLED=${IDM_HTTPS_ENABLED}
+      # ALTERAÇÃO: Usando um utilizador e base de dados dedicados
+      - IDM_DB_NAME=keyrock_db
+      - IDM_DB_USER=keyrock
+      - IDM_DB_PASS=keyrock
+      # Credenciais do administrador que será criado
+      - IDM_ADMIN_USER=admin
+      - IDM_ADMIN_EMAIL=admin@test.com
+      - IDM_ADMIN_PASS=1234
+    networks:
+      - fiware
+
+  mysql-db:
+    restart: always
+    image: mysql:5.7
+    hostname: mysql-db
+    container_name: db-mysql
+    ports:
+      - '${MYSQL_PORT}:3306'
+    expose:
+      - '3306'
+    environment:
+      - 'MYSQL_ROOT_PASSWORD=secret'
+      # ALTERAÇÃO: Instruções para o MySQL criar a base de dados e o utilizador para o Keyrock
+      - 'MYSQL_DATABASE=keyrock_db'
+      - 'MYSQL_USER=keyrock'
+      - 'MYSQL_PASSWORD=keyrock'
+    volumes:
+      - mysql-db:/var/lib/mysql
+      - ./mysql-data:/docker-entrypoint-initdb.d
+    networks:
+      - fiware
+    healthcheck:
+      # HEALTHCHECK ESSENCIAL para o Keyrock esperar
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecret"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+
+volumes:
+  mysql-db:

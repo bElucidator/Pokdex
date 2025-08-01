@@ -1,0 +1,50 @@
+# compose-files/orion-ld-compose.yaml
+# Esta é a sua versão original, com as mínimas correções para funcionar.
+# Nota: As subscrições/notificações do Orion não funcionarão com esta configuração.
+
+services:
+  # Servidor de Contexto Estático
+  ld-context:
+    image: httpd:alpine
+    hostname: context
+    container_name: ld-context
+    ports:
+      - "3004:80"
+    volumes:
+      - ../data-models:/usr/local/apache2/htdocs/
+      - type: bind
+        source: ../conf/mime.types
+        target: /usr/local/apache2/conf/mime.types
+        read_only: true
+    networks:
+      - fiware
+
+  # Base de Dados para o Orion
+  mongo-db:
+    image: mongo:3.6
+    hostname: orion-mongo-db
+    container_name: orion-mongo-db
+    ports:
+      - "${MONGO_PORT}:${MONGO_PORT}"
+    command: --nojournal
+    volumes:
+      - mongo-db:/data
+    networks:
+      - fiware
+
+  # Orion Context Broker
+  orion:
+    image: fiware/orion-ld:${ORION_LD_VERSION}
+    hostname: orion
+    container_name: orion
+    ports:
+      - "${ORION_PORT}:${ORION_PORT}"
+    depends_on:
+      - mongo-db
+      - ld-context
+    command: -dbhost orion-mongo-db -logLevel DEBUG
+    networks:
+      - fiware
+
+volumes:
+  mongo-db:

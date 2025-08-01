@@ -1,0 +1,31 @@
+{
+    "@context": {
+        "pokedex": "https://pokedex.example.org/schema/",
+        "schema": "https://schema.org/",
+
+        "Pokemon": {
+            "@id": "pokedex:Pokemon",
+            "@type": "@id"
+        },
+        "name": {
+            "@id": "schema:name",
+            "@type": "https://schema.org/Text"
+        },
+        "pokedexNumber": {
+            "@id": "pokedex:pokedexNumber",
+            "@type": "https://schema.org/Integer"
+        },
+        "types": {
+            "@id": "pokedex:types",
+            "@type": "https://schema.org/Text"
+        },
+        "hp": {
+            "@id": "pokedex:hp",
+            "@type": "https://schema.org/Integer"
+        },
+        "attack": {
+            "@id": "pokedex:attack",
+            "@type": "https://schema.org/Integer"
+        }
+    }
+}

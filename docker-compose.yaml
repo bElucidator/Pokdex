@@ -1,0 +1,12 @@
+# Este é o seu arquivo docker-compose.yaml principal.
+# Ele fica na pasta raiz do projeto (ex: ~/Desktop/Pokedex/)
+# e carrega os outros arquivos de compose da subpasta.
+
+include:
+  - ./compose-files/orion-ld-compose.yaml
+  - ./compose-files/keyrock-compose.yaml
+
+networks:
+  fiware:
+    name: pokedex-network
+    driver: bridge
